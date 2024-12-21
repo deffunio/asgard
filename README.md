@@ -16,7 +16,7 @@ Add dependency via JitPack:
 <dependency>
     <groupId>com.github.deffunio.asgard</groupId>
     <artifactId>asgard-core</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -35,10 +35,10 @@ type Query {
 And finally add the following to the RuntimeWiring builder, for Micronaut:
 ```java
 RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
-                .fieldVisibility(MicronautComponentsFactory.authorizeFieldVisibility(securityService))
+                .fieldVisibility(MicronautComponentsFactory.authorizeFieldVisibility(securityService));
 ```
 for Spring:
 ```java
 RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring()
-                .fieldVisibility(SpringComponentsFactory.authorizeFieldVisibility())
+                .fieldVisibility(SpringComponentsFactory.authorizeFieldVisibility());
 ```

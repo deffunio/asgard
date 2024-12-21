@@ -23,9 +23,9 @@ public final class AuthorizeFieldVisibility implements GraphqlFieldVisibility {
         List<GraphQLFieldDefinition> allowedFields = new ArrayList<>();
         List<GraphQLFieldDefinition> deniedFields = new ArrayList<>();
         for (GraphQLFieldDefinition field : fieldsContainer.getFieldDefinitions()) {
-            GraphQLFieldDefinition processedField = processField(field);
-            if (processedField != null) {
-                allowedFields.add(processedField);
+            boolean accessAllowed = checkField(field);
+            if (!accessAllowed) {
+                allowedFields.add(field);
             } else {
                 deniedFields.add(field);
             }
@@ -44,23 +44,23 @@ public final class AuthorizeFieldVisibility implements GraphqlFieldVisibility {
         if (field == null) {
             return null;
         }
-        GraphQLFieldDefinition processedField = processField(field);
-        if (processedField == null) {
+        boolean accessAllowed = checkField(field);
+        if (!accessAllowed) {
             throw GraphqlErrorException.newErrorException()
                     .message("Not authorised to access the field '%s'.".formatted(field.getName()))
                     .build();
         }
-        return processedField;
+        return field;
     }
 
-    private GraphQLFieldDefinition processField(GraphQLFieldDefinition fieldDefinition) {
+    private boolean checkField(GraphQLFieldDefinition fieldDefinition) {
         GraphQLAppliedDirective directive = fieldDefinition.getAppliedDirective("authorize");
         if (directive != null) {
             GraphQLAppliedDirectiveArgument rolesArgument = directive.getArgument("roles");
             if (rolesArgument != null) {
                 Object value = rolesArgument.getValue();
-                if (value instanceof List<?> list) {
-                    for (Object v : list) {
+                if (value instanceof List<?> roles) {
+                    for (Object v : roles) {
                         if (v instanceof String role) {
                             boolean allowed = switch (role) {
                                 case "Authenticated", "Authn",
@@ -68,13 +68,13 @@ public final class AuthorizeFieldVisibility implements GraphqlFieldVisibility {
                                 default -> authorizationSecurity.hasRole(role);
                             };
                             if (!allowed) {
-                                return null;
+                                return false;
                             }
                         }
                     }
                 }
             }
         }
-        return fieldDefinition;
+        return true;
     }
 }
